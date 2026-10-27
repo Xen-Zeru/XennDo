@@ -1,0 +1,14 @@
+# Local Android tool state. The Gradle wrapper is intentionally retained.
+/.gradle/
+/captures/
+/local.properties
+GeneratedPluginRegistrant.java
+.cxx/
+.kotlin/
+
+# Owner-controlled release credentials never belong in source control.
+key.properties
+**/*.keystore
+**/*.jks
+**/*.p12
+**/*.pfx

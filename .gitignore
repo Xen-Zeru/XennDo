@@ -1,0 +1,91 @@
+# Flutter / Dart caches and generated local metadata
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+/build/
+/coverage/
+**/doc/api/
+.widget_preview/
+**/ios/Flutter/.last_build_id
+
+# Android build output and local SDK / Gradle state
+/android/app/debug/
+/android/app/profile/
+/android/app/release/
+**/.gradle/
+**/.cxx/
+**/.kotlin/
+**/local.properties
+GeneratedPluginRegistrant.java
+
+# IDE and operating-system user state
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+.DS_Store
+Thumbs.db
+.atom/
+.build/
+.buildlog/
+.history/
+.svn/
+.swiftpm/
+migrate_working_dir/
+
+# Temporary output, logs, editor backups and crash dumps
+*.class
+*.log
+*.pyc
+__pycache__/
+*.swp
+*.swo
+*~
+*.bak
+*.orig
+*.rej
+*.tmp
+*.temp
+*.hprof
+*.dmp
+
+# Local environment and signing secrets
+.env
+.env.*
+!.env.example
+**/key.properties
+*.jks
+*.keystore
+*.p12
+*.pfx
+*.p8
+*.pem
+*.key
+
+# Private task data and user-generated backup exports
+*.db
+*.db-*
+*.sqlite
+*.sqlite-*
+*.sqlite3
+*.sqlite3-*
+xenndo-backup-*.json
+xenndo-phase*-verified-*.json
+/.local/
+
+# Packaged artifacts and generated debugging metadata
+*.apk
+*.aab
+*.apks
+*.idsig
+app.*.symbols
+app.*.map.json
+
+# Verification captures belong in ignored local build output, not source
+/docs/screenshots/
+
+# Keep pubspec.lock, .metadata, Drift *.g.dart and the Gradle wrapper in source.
