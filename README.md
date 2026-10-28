@@ -15,6 +15,15 @@ Organize schoolwork, work projects and everyday activities in one place, with
 local reminders and a daily focus list. Core features work offline without an
 account or backend service.
 
+## Download XennDo
+
+[![Download Android APK](https://img.shields.io/badge/Download-Android%20APK-007F75?style=for-the-badge&logo=android&logoColor=white)](https://github.com/Xen-Zeru/XennDo/releases/download/v1.0.0-android-testing.1/app-debug.apk) **Testing build — debug-signed, not production-ready.**
+
+[All releases](https://github.com/Xen-Zeru/XennDo/releases)
+
+**iPhone — Coming soon.** iOS distribution is being prepared. iOS source
+support is not an installable release.
+
 ## Features
 
 - **Today:** review overdue work, today's deadlines and completed tasks. Focus
