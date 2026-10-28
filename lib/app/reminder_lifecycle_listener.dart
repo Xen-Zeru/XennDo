@@ -89,7 +89,7 @@ class _ReminderLifecycleListenerState
       ref
           .read(reminderNoticeProvider.notifier)
           .show(
-            'Android reminders could not be refreshed. Your tasks are safe; reopen the app to retry.',
+            'Reminders could not be refreshed. Your tasks are safe; reopen the app to retry.',
           );
     }
   }

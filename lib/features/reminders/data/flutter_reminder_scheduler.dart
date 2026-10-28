@@ -38,7 +38,16 @@ class FlutterReminderScheduler implements ReminderScheduler {
 
     const androidSettings = AndroidInitializationSettings('ic_stat_task');
     await _plugin.initialize(
-      settings: const InitializationSettings(android: androidSettings),
+      settings: const InitializationSettings(
+        android: androidSettings,
+        iOS: DarwinInitializationSettings(
+          // Ask in context when a reminder is enabled, never on app launch.
+          requestAlertPermission: false,
+          requestSoundPermission: false,
+          requestBadgePermission: false,
+          defaultPresentBadge: false,
+        ),
+      ),
       onDidReceiveNotificationResponse: (response) {
         final payload = response.payload;
         if (payload != null && payload.isNotEmpty) {
@@ -84,6 +93,28 @@ class FlutterReminderScheduler implements ReminderScheduler {
 
   @override
   Future<ReminderPermissionStatus> checkPermission() async {
+    final ios = _plugin
+        .resolvePlatformSpecificImplementation<
+          IOSFlutterLocalNotificationsPlugin
+        >();
+    if (ios != null) {
+      final permission = await ios.checkPermissions();
+      if (permission == null) return ReminderPermissionStatus.unsupported;
+      // Provisional authorization still permits quiet Notification Center delivery.
+      if (permission.isEnabled || permission.isProvisionalEnabled) {
+        return ReminderPermissionStatus.granted;
+      }
+      try {
+        final canRequest = await _settingsChannel.invokeMethod<bool>(
+          'canRequestNotificationPermission',
+        );
+        return canRequest == true
+            ? ReminderPermissionStatus.requestable
+            : ReminderPermissionStatus.denied;
+      } on MissingPluginException {
+        return ReminderPermissionStatus.denied;
+      }
+    }
     final android = _plugin
         .resolvePlatformSpecificImplementation<
           AndroidFlutterLocalNotificationsPlugin
@@ -112,6 +143,16 @@ class FlutterReminderScheduler implements ReminderScheduler {
 
   @override
   Future<ReminderPermissionStatus> requestPermission() async {
+    final ios = _plugin
+        .resolvePlatformSpecificImplementation<
+          IOSFlutterLocalNotificationsPlugin
+        >();
+    if (ios != null) {
+      final status = await checkPermission();
+      if (status != ReminderPermissionStatus.requestable) return status;
+      await ios.requestPermissions(alert: true, sound: true);
+      return checkPermission();
+    }
     final android = _plugin
         .resolvePlatformSpecificImplementation<
           AndroidFlutterLocalNotificationsPlugin
@@ -133,6 +174,11 @@ class FlutterReminderScheduler implements ReminderScheduler {
   @override
   Future<bool> openNotificationSettings() async {
     try {
+      final ios = _plugin
+          .resolvePlatformSpecificImplementation<
+            IOSFlutterLocalNotificationsPlugin
+          >();
+      if (ios != null) return await ios.openAppNotificationSettings() ?? false;
       final opened = await _settingsChannel.invokeMethod<bool>(
         'openNotificationSettings',
       );
@@ -152,6 +198,18 @@ class FlutterReminderScheduler implements ReminderScheduler {
     String? body,
     required DateTime when,
   }) async {
+    final ios = _plugin
+        .resolvePlatformSpecificImplementation<
+          IOSFlutterLocalNotificationsPlugin
+        >();
+    if (ios != null) {
+      final pending = await pendingNotificationIds();
+      // iOS retains at most 64 pending requests. Do not silently evict an
+      // existing reminder when the database contains more than this limit.
+      if (pending.length >= 64 && !pending.contains(notificationId)) {
+        throw const ReminderCapacityException();
+      }
+    }
     await _plugin.zonedSchedule(
       id: notificationId,
       title: title,
@@ -159,6 +217,13 @@ class FlutterReminderScheduler implements ReminderScheduler {
       scheduledDate: tz.TZDateTime.from(when.toUtc(), tz.UTC),
       payload: taskId,
       notificationDetails: const NotificationDetails(
+        iOS: DarwinNotificationDetails(
+          presentAlert: true,
+          presentBanner: true,
+          presentList: true,
+          presentSound: true,
+          presentBadge: false,
+        ),
         android: AndroidNotificationDetails(
           _channelId,
           _channelName,

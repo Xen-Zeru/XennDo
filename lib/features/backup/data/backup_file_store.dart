@@ -21,7 +21,7 @@ abstract interface class BackupFileStore {
   Future<List<int>?> openBackup();
 }
 
-/// Backs up through Android's Storage Access Framework.
+/// Uses Android's Storage Access Framework or the iOS document picker.
 ///
 /// The system dialogs grant a scoped read or write for the one file the person
 /// chooses, so no storage permission is requested and nothing is read from or

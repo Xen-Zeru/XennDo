@@ -1,6 +1,6 @@
 # Xenn Do - Implementation Plan
 
-**Last updated:** 2026-10-26
+**Last updated:** 2026-10-28
 
 This plan delivers the initial offline-first Android version in nine phases.
 Each phase ends with formatting, analysis, tests, and an update to
@@ -432,6 +432,25 @@ Settings retains a compact version-only row. No later product phase started.
 
 The exact commands, actual APK results and emulator checks are in PROGRESS.
 No later product phase is started.
+
+## Android and iOS extension — 2026-10-28
+
+**Status:** Source integration and Linux checks complete (176 tests and Android
+debug build passed); native iOS
+qualification requires macOS/Xcode. No platform is published by this extension.
+
+- Audit locked plugin support and retain Android identity, native configuration,
+  database schema 4 and JSON backup versions 1/2.
+- Add a generated iOS host with `com.xennzeru.xenndo`, native branding and
+  owner-selected Apple signing. Preserve Flutter UIScene/plugin integration.
+- Add Darwin notification initialization, contextual permissions, Settings,
+  scheduling/cancellation, tap payloads and safe pending-request capacity handling.
+- Replace Android-only UI text and check iPhone-style safe areas, keyboard,
+  navigation and accessibility through Linux widget tests.
+- Run formatting, analysis, tests and an Android regression build; record actual
+  results in PROGRESS. iOS compilation/runtime is not inferred from Dart tests.
+- Follow [IOS_SETUP.md](IOS_SETUP.md) for Mac setup, device qualification,
+  cross-platform backup tests and owner-controlled TestFlight/App Store steps.
 
 ## Cross-phase quality gates
 

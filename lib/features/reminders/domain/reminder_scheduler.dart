@@ -1,12 +1,21 @@
 enum ReminderPermissionStatus {
   granted,
 
-  /// Android can still display a runtime permission prompt.
+  /// The platform can still display a notification permission prompt.
   requestable,
 
   /// A system settings change is required.
   denied,
   unsupported,
+}
+
+class ReminderCapacityException implements Exception {
+  const ReminderCapacityException();
+
+  @override
+  String toString() =>
+      'Task saved. iOS can keep up to 64 pending reminders. This reminder was '
+      'not scheduled. Remove another reminder or retry after one is delivered.';
 }
 
 /// Platform-independent reminder scheduling boundary.

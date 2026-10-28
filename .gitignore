@@ -82,6 +82,11 @@ xenndo-phase*-verified-*.json
 *.aab
 *.apks
 *.idsig
+*.ipa
+*.xcarchive/
+*.dSYM/
+*.mobileprovision
+*.provisionprofile
 app.*.symbols
 app.*.map.json
 

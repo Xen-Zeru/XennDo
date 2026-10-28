@@ -13,8 +13,24 @@ if (signingFile.exists()) {
     listOf("storeFile", "storePassword", "keyAlias", "keyPassword").forEach {
         require(!releaseKeys.getProperty(it).isNullOrBlank()) { "Missing release signing property: $it" }
     }
-} else {
-    logger.warn("XennDo: no key.properties; release artifacts will be UNSIGNED. Publication requires release signing.")
+    val configuredStore = rootProject.file(releaseKeys.getProperty("storeFile"))
+    require(configuredStore.isFile) { "Configured production keystore does not exist." }
+    require(!configuredStore.name.equals("debug.keystore", ignoreCase = true) &&
+        !releaseKeys.getProperty("keyAlias").equals("androiddebugkey", ignoreCase = true)) {
+        "The Android debug keystore/alias cannot be used for a production release."
+    }
+}
+
+// Evaluate the graph, including aggregate commands such as `gradlew assemble`,
+// before any packaging tasks run. Debug builds remain usable without secrets.
+gradle.taskGraph.whenReady {
+    val packagesRelease = allTasks.any {
+        it.project.path == project.path &&
+            it.name.matches(Regex("(assemble|bundle|package).*Release.*"))
+    }
+    require(!packagesRelease || signingFile.isFile) {
+        "Production signing is required. Run python3 tools/setup_android_signing.py in your own terminal before building a release."
+    }
 }
 
 android {
@@ -55,7 +71,7 @@ android {
 
     buildTypes {
         release {
-            // Never fall back to the debug key for a release artifact.
+            // Missing signing is rejected above; never fall back to debug.
             signingConfig = signingConfigs.findByName("release")
         }
     }

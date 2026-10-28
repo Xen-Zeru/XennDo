@@ -9,6 +9,7 @@ import 'package:xenndo/features/backup/application/backup_service.dart';
 import 'package:xenndo/features/backup/presentation/backup_dialogs.dart';
 import 'package:xenndo/features/reminders/application/reminder_providers.dart';
 import 'package:xenndo/features/reminders/domain/reminder_scheduler.dart';
+import 'package:xenndo/features/reminders/presentation/reminder_platform_text.dart';
 import 'package:xenndo/features/settings/application/settings_providers.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -48,12 +49,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
       if (mounted) {
         ref.invalidate(notificationPermissionProvider);
         if (!opened) {
-          _showMessage('Could not open Android notification settings.');
+          _showMessage('Could not open system notification settings.');
         }
       }
     } catch (_) {
       if (mounted) {
-        _showMessage('Could not open Android notification settings.');
+        _showMessage('Could not open system notification settings.');
       }
     }
   }
@@ -73,9 +74,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
           builder: (dialogContext) => AlertDialog(
             scrollable: true,
             title: const Text('Notifications are still off'),
-            content: const Text(
+            content: Text(
               'Reminders cannot be delivered until notifications are allowed. '
-              'You can change this in Android settings.',
+              'You can change this in ${ReminderPlatformText.settingsName(Theme.of(context).platform)}.',
             ),
             actions: [
               TextButton(
@@ -358,7 +359,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
           Text(
             canRequest
                 ? 'Enable notifications to get reminders for your tasks.'
-                : 'Allow notifications in Android settings to get reminders.',
+                : 'Allow notifications in ${ReminderPlatformText.settingsName(theme.platform)} to get reminders.',
             style: theme.textTheme.bodySmall?.copyWith(
               color: colors.onSurfaceVariant,
             ),

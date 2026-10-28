@@ -1,8 +1,11 @@
 # XennDo Android release checklist
 
-Updated 2026-10-26. This records release preparation separately from publication
-approval. No production signing credentials have been supplied or generated;
-no app has been published.
+This checklist covers Android. The iOS extension and its pending Mac/Xcode,
+signing and physical-device checks are recorded in [IOS_SETUP.md](IOS_SETUP.md).
+
+Updated 2026-10-28. This records release preparation separately from publication
+approval. Signing credentials are owner-controlled and local; current artifact
+verification results are recorded in PROGRESS. No app release has been published.
 
 ## Identity, branding and version
 
@@ -30,9 +33,11 @@ for the actual data-preservation checks. Keep this backup private.
 ## Signing: required before distribution
 
 - [x] Remove the release build's debug-key fallback.
-- [x] Release builds without `android/key.properties` produce an **unsigned**
-  APK. A successful compile is not a signed, installable or publishable release.
+- [x] Release packaging without `android/key.properties` fails before packaging.
+  Debug builds still work without release credentials. The earlier Phase 9
+  unsigned artifacts are historical compilation evidence, not distribution APKs.
 - [x] Reject partial signing properties instead of silently changing identity.
+- [x] Reject the standard debug keystore filename and debug key alias for release.
 - [x] Ignore `key.properties`, `*.jks` and `*.keystore` in version control.
 - [ ] Owner supplies/protects the upload keystore and its recovery material,
   chooses Play App Signing, and controls the signing passwords.
@@ -46,11 +51,66 @@ for the actual data-preservation checks. Keep this backup private.
 - [ ] Verify the upload certificate and any Play-delivered build against the
   owner-controlled expected identity. Retain the signed artifact/checksums.
 
-The audit's `app-debug.apk` uses the Android development key. The audit's
-`app-release.apk` is unsigned: `apksigner verify` intentionally fails. Neither
-artifact is a Play Store publication candidate. Follow the official
+The earlier audit's `app-debug.apk` used the Android development key and its
+release artifact was unsigned. Never distribute those historical artifacts.
+A new signed build must pass the identity/certificate checks below and the
+physical-device matrix. Follow the official
 [Android signing guide](https://developer.android.com/studio/publish/app-signing)
 and [Flutter release instructions](https://docs.flutter.dev/deployment/android).
+
+### Private owner setup and backup
+
+Run `python3 tools/setup_android_signing.py` from your own interactive terminal.
+Choose `create` if this is the first production key, or `reuse` to retain an
+existing production signing identity. The helper refuses to overwrite an
+existing keystore or `android/key.properties`. Never paste passwords in chat.
+
+A new key is RSA 3072 / SHA256withRSA in PKCS12, valid for 10,000 days, stored
+under `~/.local/share/xenndo-signing/` outside the repository. The owner enters
+the public certificate subject and a strong password at hidden prompts. For
+PKCS12 the key/store password is the same. Keytool receives the password through
+an inherited anonymous pipe, not an argument, environment variable or password
+file. The helper records an independent public DER certificate/fingerprint.
+
+The directory is mode 0700; keystore and local properties are mode 0600.
+`key.properties` contains **plaintext credentials** needed by Gradle; Git ignore
+and file permissions do not encrypt it. Do not print, stage or upload it.
+
+1. Keep the keystore plus public certificate/fingerprint in an encrypted backup
+   on a separate offline device/storage location. Keep a second protected copy
+   in another secure location; avoid a single laptop/disk as the only copy.
+2. Save the store/key passwords, alias, certificate fingerprint and application
+   ID in your password manager. Keep its recovery method independent of the
+   keystore backup. Never put passwords into terminal commands or shell history.
+3. Verify a backup restores in a private location and that its certificate
+   matches the recorded fingerprint. Do not overwrite the active key to test it.
+4. Reuse the same signing identity for future APK updates and increase the build
+   number. Losing this direct-distribution key can prevent ordinary updates to
+   existing installations; a new key is not an interchangeable replacement.
+
+For a direct-download APK this is the **app signing key**, not merely a Play
+upload key. If Play distribution is added, plan app-signing vs upload-key
+ownership and certificate continuity before enrolling in Play App Signing.
+
+### Verify a signed APK before device qualification
+
+1. Run `flutter analyze` and `flutter test`, then `flutter build apk --release`.
+2. Use Android SDK Build Tools `apksigner verify --verbose --print-certs` on
+   `build/app/outputs/flutter-apk/app-release.apk`. Match its certificate SHA-256
+   to the independently recorded owner certificate; reject a debug identity.
+3. Use `aapt dump badging` to check `com.xennzeru.xenndo`, version name/build
+   against pubspec, supported SDKs and that the APK is not debuggable.
+4. Generate `sha256sum app-release.apk > app-release.apk.sha256` from the APK
+   output directory. Verify the checksum again after any copying/uploading.
+   An APK checksum and a signing-certificate fingerprint measure different data.
+5. Test this exact optimized/signed APK against the device matrix below. Keep
+   all binaries, checksums, keystores and credential files out of source control.
+
+A production-signed APK cannot replace a debug-signed installation with the
+same application ID through an ordinary update. Export a private backup first;
+use a fresh device/profile for fresh-install checks, or explicitly preserve and
+restore data when changing signing identities. Do not uninstall the user's only
+copy merely to make a test installation succeed.
 
 ## Configuration and privacy
 

@@ -9,7 +9,7 @@ abstract final class SettingsKeys {
   /// Keys that a backup file may carry.
   ///
   /// Transient platform state such as the notification permission is not
-  /// listed: it is read from Android on demand and is never stored, so it is
+  /// listed: it is read from the platform on demand and is never stored, so it is
   /// never exported or restored.
   static const Set<String> exportableKeys = {themeMode};
 }

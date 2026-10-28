@@ -1,3 +1,4 @@
+import 'package:xenndo/features/reminders/presentation/reminder_platform_text.dart';
 import 'package:go_router/go_router.dart';
 import 'package:xenndo/features/tasks/presentation/task_deletion_notice.dart';
 import 'package:xenndo/features/settings/application/settings_providers.dart';
@@ -410,7 +411,7 @@ class _TaskEditorScreenState extends ConsumerState<TaskEditorScreen> {
                                                   )
                                                   .value ==
                                               ReminderPermissionStatus.granted
-                                        ? 'Reminder enabled. Android delivery may be delayed.'
+                                        ? 'Reminder enabled. Delivery may be delayed.'
                                         : 'Not scheduled while notifications are off. Check Settings.')
                                   : 'No reminder set.',
                             ),
@@ -469,7 +470,9 @@ class _TaskEditorScreenState extends ConsumerState<TaskEditorScreen> {
                             ),
                             const SizedBox(height: AppSpacing.sm),
                             Text(
-                              'Android may delay reminder delivery because of battery restrictions or unavailable exact alarms. Reminders keep their chosen local time if the device time zone changes.',
+                              ReminderPlatformText.deliveryExplanation(
+                                theme.platform,
+                              ),
                               style: theme.textTheme.bodySmall?.copyWith(
                                 color: colorScheme.onSurfaceVariant,
                               ),
@@ -727,8 +730,8 @@ class _TaskEditorScreenState extends ConsumerState<TaskEditorScreen> {
       builder: (dialogContext) => AlertDialog(
         scrollable: true,
         title: const Text('Notifications are off'),
-        content: const Text(
-          'XennDo needs notification permission to remind you. You can turn it on in Android settings. Without it, the reminder cannot be delivered.',
+        content: Text(
+          'XennDo needs notification permission to remind you. You can turn it on in ${ReminderPlatformText.settingsName(Theme.of(context).platform)}. Without it, the reminder cannot be delivered.',
         ),
         actions: [
           TextButton(
@@ -751,9 +754,11 @@ class _TaskEditorScreenState extends ConsumerState<TaskEditorScreen> {
             .openNotificationSettings();
         if (!opened && mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
+            SnackBar(
               content: Text(
-                'Open Android Settings, then Apps → XennDo → Notifications.',
+                ReminderPlatformText.settingsInstructions(
+                  Theme.of(context).platform,
+                ),
               ),
             ),
           );
@@ -761,7 +766,7 @@ class _TaskEditorScreenState extends ConsumerState<TaskEditorScreen> {
       } catch (_) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Could not open Android settings.')),
+            const SnackBar(content: Text('Could not open system settings.')),
           );
         }
       }

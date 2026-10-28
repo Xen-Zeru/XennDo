@@ -124,6 +124,82 @@ instructions. Publication-candidate privacy checks and private-file ignore probe
 were repeated before staging. No signing credentials, license, APK upload,
 GitHub Release or visibility change was introduced.
 
+## Android and iOS extension — 2026-10-28
+
+Added an iOS 15.0 host generated with the installed Flutter SDK, then copied only
+the iOS platform and its migration metadata into this working project. Runner
+uses `com.xennzeru.xenndo`, display name XennDo, installed version/build metadata,
+UIScene/implicit-engine plugin registration, matching calendar/check icons and
+a light/dark launch background. No Apple development team is selected.
+
+The resolved dependencies already include iOS implementations. No new package,
+lockfile, database-schema or JSON-format change was needed. Drift storage keeps
+the same sandbox filename, and format 2 / legacy format 1 remain portable.
+FilePicker uses the native Files document picker on iOS; native cross-device
+round trips still need device qualification. iOS device backups may include
+sandbox data; documentation now distinguishes this from Android exclusions.
+
+Darwin notification setup does not prompt at launch. Contextual permission,
+not-determined vs denied state, provisional delivery, system Settings,
+foreground presentation, UTC scheduling and warm/cold task payload routing use
+the existing reminder/navigation architecture. A 64-request guard refuses excess
+iOS reminders without evicting existing requests; task saves survive with a
+visible warning. There is no background rolling reminder queue. Platform-aware
+permission/delivery copy replaces Android-only messages on iOS.
+
+Nine added tests cover iOS channel initialization/permissions/timezone refresh,
+notification content/taps/cancellation/capacity, persisted task content after a
+capacity refusal, and iPhone-style safe areas, large text, keyboard validation,
+Settings navigation and unsaved-draft protection. These run on Linux with
+mocked platform channels and layout metrics, not Apple's notification service.
+
+| Check | Actual result |
+| --- | --- |
+| `dart format .` and clean format check | Passed: 107 Dart files, zero remaining changes. |
+| `flutter analyze` | Passed after removing an unnecessary test import; no issues. |
+| `flutter test --reporter expanded` | Passed: all 176 tests, including the original Android/shared regressions. |
+| `flutter build apk --debug` | Passed: `build/app/outputs/flutter-apk/app-debug.apk`. No installation performed. |
+| `ruby -c ios/Podfile` | Passed: syntax only; CocoaPods resolution requires a Mac. |
+| Static iOS configuration/assets | Plist/XML/JSON parse, identifiers, absent signing team, 15 icon dimensions and local Markdown links passed. This is not an Xcode build. |
+| Android/data preservation | All Android files match the pre-extension hash baseline, including ignored local configuration. Schema/generated database source, backup codec/repository and lockfile are unchanged. No live device database was accessed or reset. |
+| Publication hygiene | Source credential/path scan and iOS generated-file/signing ignore probes passed. Nothing committed, pushed or published by this extension. |
+| iOS compile / simulator / XCTest / physical iPhone / archive | Not run: host is Linux; Xcode and CocoaPods are unavailable. No IPA generated. |
+
+The first new test runs exposed test-harness assumptions about UTC alias names,
+the iOS cancel channel argument and widget platform overrides; these were
+corrected against the locked plugin API before the full passing run. The final
+Android build reported existing dependency-update and Gradle native-access
+notices; no dependency upgrade or Android configuration change was made.
+
+See [IOS_SETUP.md](IOS_SETUP.md) for the dependency audit, exact Mac commands,
+owner-selected signing, physical-iPhone acceptance matrix and TestFlight/App
+Store preparation. Native integration remains unverified until those checks run.
+No platform was published and no signing material was generated.
+
+## First signed Android release preparation — 2026-10-28
+
+Requested artifact: production-signed APK for `com.xennzeru.xenndo`, version
+`1.0.0+1`. No release is published by this work.
+
+- Added an owner-run terminal helper that creates a production PKCS12 keystore
+  outside the repository, or reuses an existing identity. Passwords are hidden
+  and passed to keytool through an anonymous pipe; ignored local properties use
+  mode 0600. The helper never overwrites an existing key or configuration.
+- Release packaging now fails without signing configuration and rejects the
+  standard debug keystore/alias. Missing-signing rejection and an unsigned-free
+  debug dry run both passed. No implicit debug fallback exists.
+- Updated README and the Android checklist with private setup, encrypted backup,
+  certificate/checksum verification and safe device-install procedures.
+- Clean format check: 107 Dart files, zero changes. `flutter analyze`: no issues.
+  `flutter test --reporter expanded`: all 176 tests passed.
+- Signing is awaiting actual owner-generated private files in this workspace.
+  At this checkpoint neither the production keystore nor `android/key.properties`
+  exists. The signed build must wait until the private setup is available.
+- Therefore no new signed APK, verified production certificate or APK checksum
+  is recorded yet. Existing debug/unsigned artifacts are not substituted.
+- No user database was changed, no app was uninstalled, and nothing was staged,
+  committed, pushed or published. Physical-device qualification remains pending.
+
 ## Verification limits
 
 Physical hardware, the full supported API matrix, TalkBack/Switch Access,

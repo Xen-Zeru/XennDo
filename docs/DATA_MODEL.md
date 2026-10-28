@@ -8,7 +8,7 @@ rules, and the migration strategy.
 ## 1. Storage overview
 
 - Database: SQLite through Drift, opened with `driftDatabase(name: 'xenndo')` on
-  Android.
+  Android and iOS (iOS native execution pending Mac/Xcode verification).
 - No network dependency. All reads and writes are local.
 - Identifiers are UUID v4 strings generated on-device, except the built-in
   Inbox list which uses the stable id `inbox`.

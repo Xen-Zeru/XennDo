@@ -895,10 +895,13 @@ class TaskRepository {
   Future<void> _attemptReminderUpdate(Future<void> Function() action) async {
     try {
       await synchronizeReminders(action);
-    } catch (_) {
+    } catch (error) {
       // The database commit succeeded. Retrying the save would duplicate data.
       onNotice?.call(
-        'Task changes saved. Android reminders could not be updated. Check notification settings and reopen the app to retry.',
+        error is ReminderCapacityException
+            ? error.toString()
+            : 'Task changes saved. Reminders could not be updated. '
+                  'Check notification settings and reopen the app to retry.',
       );
     }
   }

@@ -7,11 +7,11 @@ Phase 9 audits and Android release preparation are recorded in
 `docs/PROGRESS.md`; signing, physical-device qualification and store publication
 remain separate owner-controlled gates in `docs/RELEASE_CHECKLIST.md`.
 
-**Last updated:** 2026-10-26
+**Last updated:** 2026-10-28
 
 ## 1. Product overview
 
-XennDo is an offline-first personal to-do application for Android. It is
+XennDo is an offline-first personal to-do application for Android and iOS. It is
 designed for people who want a fast, private daily planner without an account,
 subscription, backend, or cloud dependency.
 
@@ -32,7 +32,9 @@ can leave that storage through a user-selected document provider.
 - Keep tasks visible and actionable with priorities, due dates, and reminders.
 - Preserve user confidence through clear completion history and local backup.
 - Respect privacy by default: no account, telemetry, cloud sync, or AI.
-- Deliver a responsive, accessible Material 3 Android experience.
+- Deliver a responsive, accessible Material 3 mobile experience.
+- Extend the verified Android implementation to iOS; native iOS qualification
+  remains pending Mac/Xcode and physical-device checks in `IOS_SETUP.md`.
 
 ## 3. Non-goals for the initial version
 
@@ -46,12 +48,12 @@ The following are explicitly excluded until the initial version is complete:
 - Cloud sync or multi-device sync
 - Accounts, authentication, backend services
 - AI-generated suggestions or summaries
-- iOS, web, desktop, or tablet-specific release support
+- Web, desktop, or tablet-specific release support
 - Calendar integration
 
 ## 4. Target user and core use cases
 
-**Primary user:** An individual planning personal tasks on an Android phone who
+**Primary user:** An individual planning personal tasks on an Android or iOS phone who
 values speed, privacy, and a small feature set.
 
 Core use cases:
@@ -185,7 +187,7 @@ Core use cases:
 ### 5.13 Backup and restore
 
 - Users can export all app data to a versioned JSON backup file.
-- Export uses the Android share/save flow and makes clear that the file is not
+- Export uses the platform document save flow and makes clear that the file is not
   encrypted.
 - Import validates the file before changing data.
 - Import shows a summary and asks for confirmation before replacing local data.
@@ -258,8 +260,9 @@ server. Schema migrations must preserve existing user data.
 
 - Core functionality works with no network connection.
 - No account, backend, analytics, crash-reporting SDK, ads, or AI service.
-- User data remains in the app's private storage except when the user exports a
-  backup or shares a file.
+- Working data remains in private app storage; explicit export/provider sharing
+  and iOS device/iCloud backups may create copies outside it. Android automatic
+  backup exclusions remain. See `PRIVACY.md` and `IOS_SETUP.md`.
 
 ### Performance
 
@@ -296,6 +299,8 @@ server. Schema migrations must preserve existing user data.
 - Provide a production launcher icon and splash screen.
 - Review notification permissions and exact-alarm policy declarations.
 - Complete Android release qualification on supported API levels.
+- iOS uses the same `com.xennzeru.xenndo` identity; owner-selected Apple signing,
+  Mac/Xcode builds and physical-iPhone qualification are tracked in `IOS_SETUP.md`.
 - Verify backup and restore on a clean install.
 - Publish a privacy policy consistent with the no-account, local-first design.
 

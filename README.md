@@ -10,7 +10,8 @@
   </p>
 </div>
 
-XennDo is a personal task planner for Android, built with Flutter and Material 3.
+XennDo is a personal task planner built with Flutter and Material 3 for Android
+and iOS.
 Organize schoolwork, work projects and everyday activities in one place, with
 local reminders and a daily focus list. Core features work offline without an
 account or backend service.
@@ -23,6 +24,11 @@ account or backend service.
 
 **iPhone — Coming soon.** iOS distribution is being prepared. iOS source
 support is not an installable release.
+
+| Platform | Status |
+| --- | --- |
+| Android, API 24+ | Builds and automated tests verified on Linux; prior Android emulator checks recorded in the progress document. Physical-device/release qualification remains pending. |
+| iOS, 15.0+ | Native project and shared code configured. Dart tests run on Linux with mocked iOS channels/layouts. Xcode compilation, simulator and physical-iPhone verification are pending. |
 
 ## Features
 
@@ -75,7 +81,12 @@ profile builds include Flutter's development networking permission. Automatic
 Android app backup and device transfer are disabled by the manifest and backup
 rules.
 
-You can deliberately export a backup through Android's document picker. If you
+On iOS, the sandbox uses the same database schema. Documents are not exposed
+through app file sharing, but iOS/iCloud device backups may include app data
+according to the device's backup settings. No iCloud sync capability is enabled.
+This differs from the Android backup exclusions above.
+
+You can deliberately export a backup through the system document picker. If you
 choose a cloud-backed document provider, that provider handles the selected
 file under its own policies. Task titles and notes can also appear in Android
 notifications, subject to your notification and lock-screen settings.
@@ -101,6 +112,12 @@ ID is **`com.xennzeru.xenndo`**. An older `com.example.xenndo` installation has
 separate private storage; changing IDs does not transfer its data automatically.
 Use an explicit backup/restore and retain the old installation until verified.
 
+Android and iOS use the same versioned JSON format; native notification IDs are
+reassigned on restore. Transfer the exported file yourself, then use Restore on
+the destination. Cross-device Android ↔ iPhone picker and reminder behavior still
+needs physical-device verification. There is no automatic sync or separate
+in-app share button; a saved backup can be shared through Files/document providers.
+
 ## Technology
 
 | Area | Implementation |
@@ -110,7 +127,7 @@ Use an explicit backup/restore and retain the old installation until verified.
 | Navigation | go_router |
 | Persistence | Drift and SQLite |
 | Reminders | flutter_local_notifications, timezone, flutter_timezone |
-| Backup files | file_picker and Android's Storage Access Framework |
+| Backup files | file_picker, Android Storage Access Framework and iOS Files picker |
 | Package metadata | package_info_plus |
 | Record IDs | uuid |
 
@@ -124,11 +141,14 @@ schemas 1–3; the generated Drift source is kept with the app.
 
 - Flutter with Dart **3.13.5 or a compatible 3.x version**. The project is tested
   with **Flutter 3.47.6 / Dart 3.13.5**.
-- Android SDK tools and a compatible JDK. Android sources target Java 17, and the
+- For Android: Android SDK tools and a compatible JDK. Android sources target Java 17, and the
   included Gradle wrapper selects the project's Gradle version.
 - An Android emulator or device. With the tested Flutter SDK, the app's minimum
   API is **24** and its compile/target API is **36**. These SDK levels use
   Flutter-managed defaults.
+- For iOS: a Mac with Xcode and its iOS SDK/simulator, CocoaPods for plugin
+  fallback integration, and owner-controlled signing for physical devices and
+  distribution. iOS cannot be compiled or run on Omarchy Linux.
 
 Add Flutter and Android platform-tools to your shell's `PATH`, then clone the
 project using SSH:
@@ -184,7 +204,7 @@ mkdir -p .dart_tool/tmp
 export TMPDIR="$PWD/.dart_tool/tmp"
 ```
 
-### Build and install a development APK
+### Android: build and install a development APK
 
 ```bash
 flutter build apk --debug
@@ -195,7 +215,7 @@ Use a single connected Android device, or select one with `adb -s`. Launch
 **XennDo** from its app icon after installation. Replacement installs retain
 private app data when the application ID and signing identity match.
 
-### Release builds
+### Android release builds
 
 ```bash
 flutter build apk --release
@@ -204,20 +224,49 @@ flutter build apk --release
 | Build | Local output | Signing |
 | --- | --- | --- |
 | Debug | `build/app/outputs/flutter-apk/app-debug.apk` | Development debug key |
-| Release | `build/app/outputs/flutter-apk/app-release.apk` | Unsigned unless owner signing is configured |
+| Release | `build/app/outputs/flutter-apk/app-release.apk` | Requires owner-controlled production signing |
 
-Without local `android/key.properties`, the release build produces an
-**unsigned APK**. It is not installable or ready for distribution. The build
-never substitutes the debug key for release signing. Artifacts are local build
-outputs, not files intended for the source repository.
+Run `python3 tools/setup_android_signing.py` in your own terminal to create or
+reuse an owner-controlled production keystore outside the repository and write
+ignored `android/key.properties`. Passwords are entered privately, without echo.
+Release packaging fails without signing configuration and rejects the standard
+debug keystore/alias. It never substitutes the debug key. Debug builds remain
+available without release credentials. Artifacts are local build outputs, not
+files intended for the source repository.
 
 Owner signing, a signed app bundle, device qualification and store preparation
 are documented in the [Android release checklist](docs/RELEASE_CHECKLIST.md).
+
+### iOS: Mac/Xcode verification required
+
+On a Mac, install the same Flutter SDK, configure Xcode and fetch dependencies:
+
+```bash
+flutter doctor -v
+flutter precache --ios
+flutter pub get
+flutter build ios --simulator
+open ios/Runner.xcworkspace
+flutter devices
+flutter run -d <ios-device-id>
+```
+
+The bundle identifier is **`com.xennzeru.xenndo`** and deployment target is
+**iOS 15.0**. No Apple development team or credentials are committed. In Xcode,
+select your team for Runner and RunnerTests before a physical-device build.
+The project uses Flutter's generated Swift Package Manager integration with a
+Podfile for plugins that need CocoaPods. Native integration has not been built
+on this Linux machine.
+
+Follow the [iOS setup and release checklist](docs/IOS_SETUP.md) for exact setup,
+native tests, notification/backup checks, signing and TestFlight/App Store steps.
+No iOS artifact or hosted release is available from this work.
 
 ## Project layout
 
 ```text
 android/          Android host, resources and Gradle wrapper
+ios/              iOS host, Xcode workspace, branding and plugin integration
 lib/
   app/            Navigation, app shell and lifecycle handling
   core/           Database, migrations, time helpers and shared UI
@@ -246,6 +295,21 @@ The backup picker uses scoped file access and does not request broad storage
 permission. AndroidX's internal receiver permission and notification vibration
 permission may also appear in the merged manifest.
 
+## iOS reminders
+
+Permission is requested when enabling a reminder or from Settings, rather than
+on first launch. After denial, Settings opens the system notification settings.
+Provisional permission permits quiet delivery. Foreground presentation and task
+payloads are configured for the same task editor navigation as Android.
+
+iOS can retain at most 64 pending notification requests. XennDo rejects an
+additional request with a warning while retaining the saved task and existing
+requests. Remove a reminder, or reopen/retry after a delivery frees a slot; there
+is no background rolling queue. Focus, Scheduled Summary, notification settings
+and OS behavior can delay or silence delivery. Reopen XennDo after a timezone
+change to reconcile stored local reminder times. Native behavior remains pending
+iPhone verification.
+
 ## Documentation
 
 - [Product specification](docs/PRODUCT_SPEC.md)
@@ -255,6 +319,7 @@ permission may also appear in the merged manifest.
 - [Initial-scope implementation audit](docs/PHASE9_AUDIT.md)
 - [Privacy statement](docs/PRIVACY.md)
 - [Android release checklist](docs/RELEASE_CHECKLIST.md)
+- [iOS setup and release checklist](docs/IOS_SETUP.md)
 - [Source publication checklist](docs/PUBLICATION_CHECKLIST.md)
 
 ## Developer
